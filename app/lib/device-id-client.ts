@@ -46,8 +46,22 @@ export async function registerWithRateLimit(email: string, password: string, dis
   });
   
   if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Error en registro");
+    const contentType = response.headers.get("content-type");
+    let errorMessage = "Error en registro";
+    
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        const data = await response.json();
+        errorMessage = data.error || errorMessage;
+      } catch (e) {
+        // Si falla el parseo JSON, usar el mensaje genérico
+      }
+    } else {
+      // Si no es JSON, probablemente es HTML (página de error)
+      errorMessage = `Error del servidor (${response.status})`;
+    }
+    
+    throw new Error(errorMessage);
   }
   
   const result = await response.json();
@@ -88,8 +102,22 @@ export async function loginWithRateLimit(email: string, password: string) {
   });
   
   if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Error en login");
+    const contentType = response.headers.get("content-type");
+    let errorMessage = "Error en login";
+    
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        const data = await response.json();
+        errorMessage = data.error || errorMessage;
+      } catch (e) {
+        // Si falla el parseo JSON, usar el mensaje genérico
+      }
+    } else {
+      // Si no es JSON, probablemente es HTML (página de error)
+      errorMessage = `Error del servidor (${response.status})`;
+    }
+    
+    throw new Error(errorMessage);
   }
   
   return await response.json();

@@ -164,7 +164,7 @@ export default function AdminReviewsPage() {
                 className="bg-white dark:bg-slate-800/70 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
               >
                 {/* Franja superior de color */}
-                <div className="h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
+                <div className="h-1 bg-gradient-to-r from-purple-500 to-blue-500" />
 
                 <div className="p-5">
                   {/* Cabecera */}

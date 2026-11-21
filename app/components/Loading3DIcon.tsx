@@ -46,7 +46,7 @@ export function Loading3DIcon() {
           style={{ transformStyle: "preserve-3d" }}
         >
           <Image
-            src="/oso.png"
+            src="/img_load.png"
             alt="Balde de la marca"
             fill
             className="object-contain drop-shadow-[0_18px_22px_rgba(0,0,0,0.30)]"

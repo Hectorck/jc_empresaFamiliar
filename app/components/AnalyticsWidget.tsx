@@ -46,7 +46,7 @@ function formatYMD(ymd: string): string {
 const CLICK_ITEMS = [
   { type: "buttonClick", label: "Botones", icon: "smart_button", color: "orange" },
   { type: "blogClick", label: "Blogs", icon: "article", color: "indigo" },
-  { type: "linkClick", label: "Enlaces", icon: "link", color: "pink" },
+  { type: "linkClick", label: "Enlaces", icon: "link", color: "blue" },
 ];
 
 export default function AnalyticsWidget() {

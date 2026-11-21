@@ -41,11 +41,11 @@ export async function POST(req: NextRequest) {
     try {
       const userRecord = await adminAuth.getUserByEmail(email.trim().toLowerCase());
 
-      // ✅ Login exitoso
-      // NOTA: No limpiamos el contador (mantiene historial para análisis)
-      // Esto previene bypass: alguien no puede hacer 4 fallos + 1 exitoso para "limpiar"
+      // Firebase Admin SDK no puede verificar contraseñas directamente
+      // Solo verificamos que el usuario existe
+      // La validación real de contraseña ocurre en el cliente con Firebase SDK
       
-      console.log(`[validate-login] ✅ ${email}`);
+      console.log(`[validate-login] ✅ Usuario existe: ${email}`);
       
       return NextResponse.json({
         success: true,
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
       });
 
     } catch (authErr: any) {
-      // Fallo de autenticación (usuario no existe o contraseña incorrecta)
-      console.warn(`[validate-login] ❌ Fallo: ${email}`);
+      // Fallo de autenticación (usuario no existe)
+      console.warn(`[validate-login] ❌ Usuario no existe: ${email}`);
       return NextResponse.json(
         { error: "Email o contraseña incorrectos" },
         { status: 401 }

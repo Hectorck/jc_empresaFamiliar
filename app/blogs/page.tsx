@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPublishedBlogsWithoutVideos } from "../lib/blogs-db";
+import { getPublishedBlogs } from "../lib/blogs-db";
 import { useTracking } from "../lib/useAnalytics";
 import type { Blog } from "../lib/blog-types";
 
@@ -16,7 +16,7 @@ export default function BlogsPage() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const data = await getPublishedBlogsWithoutVideos();
+      const data = await getPublishedBlogs();
       setBlogs(data);
       setLoading(false);
     }
@@ -37,10 +37,12 @@ export default function BlogsPage() {
       <main className="max-w-6xl mx-auto px-4 py-8 lg:px-6 flex-1">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-icons-round text-4xl" style={{ color: "var(--color-neon-amarillo)" }}>newspaper</span>
-            <h1 className="text-4xl sm:text-5xl font-heading font-bold neon-text">Noticias</h1>
+            <span className="material-icons-round text-4xl" style={{ color: "#E0A11A" }}>article</span>
+            <h1 className="text-4xl sm:text-5xl font-heading font-bold">Artículos y Recursos</h1>
           </div>
-          <p className="text-lg" style={{ color: "var(--textSecondary)" }}>Últimas noticias de <span className="freq">OSO RADIO</span></p>
+          <p className="text-lg" style={{ color: "var(--textSecondary)" }}>
+            Estrategias y consideraciones para fortalecer la gestión de empresas familiares
+          </p>
         </div>
 
         {loading ? (
@@ -58,14 +60,14 @@ export default function BlogsPage() {
           </div>
         ) : blogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <span className="material-icons-round text-6xl" style={{ color: "var(--color-neon-amarillo)", opacity: 0.5 }}>article</span>
-            <h3 className="text-xl font-semibold" style={{ color: "var(--text)" }}>No hay noticias disponibles</h3>
+            <span className="material-icons-round text-6xl" style={{ color: "#E0A11A", opacity: 0.5 }}>article</span>
+            <h3 className="text-xl font-semibold" style={{ color: "var(--text)" }}>No hay artículos disponibles</h3>
           </div>
         ) : (
           <>
             {featured && (
               <section className="mb-12">
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--text)" }}>Noticia destacada</h2>
+                <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--text)" }}>Artículo destacado</h2>
                 <Link
                   href={`/blogs/${featured.id}`}
                   onClick={() => trackBlogClick().catch(console.error)}
@@ -73,7 +75,7 @@ export default function BlogsPage() {
                     borderColor: "var(--border)",
                     background: "var(--cardBg)"
                   }}
-                  className="w-full text-left rounded-2xl border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition flex flex-col md:flex-row card-radio"
+                  className="w-full text-left rounded-2xl border overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition flex flex-col md:flex-row"
                 >
                   {featured.blocks?.some((b) => b.type === "image") && (
                     <div className="w-full md:w-1/3 h-48 md:h-auto flex-shrink-0">
@@ -102,9 +104,9 @@ export default function BlogsPage() {
                         {featured.description}
                       </p>
                     )}
-                    <div className="inline-flex items-center gap-1 text-sm neon-text-accent mt-1 w-fit">
+                    <div className="inline-flex items-center gap-1 text-sm mt-1 w-fit" style={{ color: "#E0A11A" }}>
                       <span className="material-icons-round text-base">visibility</span>
-                      <span>Leer noticia copleta</span>
+                      <span>Leer artículo completo</span>
                     </div>
                   </div>
                 </Link>
@@ -113,10 +115,11 @@ export default function BlogsPage() {
 
             {others.length > 0 && (
               <section>
-                <h2 style={{ color: "var(--text)" }} className="text-xl font-semibold mb-4">Todas las noticias</h2>
+                <h2 style={{ color: "var(--text)" }} className="text-xl font-semibold mb-4">Todos los artículos</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {others.map((b) => {
                     const imageBlock = b.blocks?.find((block) => block.type === "image");
+                    const hasVideo = b.blocks?.some((block) => block.type === "video");
                     return (
                       <Link
                         key={b.id}
@@ -126,15 +129,20 @@ export default function BlogsPage() {
                           borderColor: "var(--border)",
                           background: "var(--cardBg)"
                         }}
-                        className="rounded-2xl border overflow-hidden shadow-sm flex flex-col cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition card-radio"
+                        className="rounded-2xl border overflow-hidden shadow-sm flex flex-col cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition"
                       >
                         {imageBlock && imageBlock.type === "image" && (
-                          <div className="w-full h-40 overflow-hidden">
+                          <div className="w-full h-40 overflow-hidden relative">
                             <img
                               src={imageBlock.url}
                               alt={imageBlock.alt || b.title}
                               className="w-full h-full object-cover"
                             />
+                            {hasVideo && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                <span className="material-icons-round text-white text-4xl">play_circle</span>
+                              </div>
+                            )}
                           </div>
                         )}
                         <div className="p-4 flex flex-col flex-1">
@@ -144,9 +152,9 @@ export default function BlogsPage() {
                               {b.description}
                             </p>
                           )}
-                          <div className="inline-flex items-center gap-1 text-xs neon-text-accent mt-auto">
+                          <div className="inline-flex items-center gap-1 text-xs mt-auto" style={{ color: "#E0A11A" }}>
                             <span className="material-icons-round text-sm">arrow_forward</span>
-                            <span>Ver más</span>
+                            <span>Leer más</span>
                           </div>
                         </div>
                       </Link>

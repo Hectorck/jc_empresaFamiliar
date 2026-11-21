@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import RadioPlayer from "../../components/StreammingButton";
+import Link from "next/link";
 import type {
   LandingSectionStyles,
   LandingFieldStyle,
@@ -298,10 +298,10 @@ export default function HeroSection({
   const innerStyle: React.CSSProperties = {
     aspectRatio:
       screenType === "mobile"
-        ? "6 / 4"
+        ? "6 / 3"
         : screenType === "tablet"
         ? "14 / 9"
-        : "2400 / 1000",
+        : "2400 / 1300",
     overflow: "hidden",
   };
 
@@ -488,7 +488,22 @@ export default function HeroSection({
             }}
             className="absolute"
           >
-            <RadioPlayer buttonText={current.buttonText} />
+            {current.buttonLink ? (
+              <Link
+                href={current.buttonLink}
+                className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+                style={{ background: "#E0A11A" }}
+              >
+                {current.buttonText}
+              </Link>
+            ) : (
+              <button
+                className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+                style={{ background: "#E0A11A" }}
+              >
+                {current.buttonText}
+              </button>
+            )}
           </div>
         )}
 
@@ -559,7 +574,22 @@ export default function HeroSection({
             )}
             {current.buttonText && (
               <div className="mt-3 sm:mt-6 w-full flex justify-center">
-                <RadioPlayer buttonText={current.buttonText} />
+                {current.buttonLink ? (
+                  <Link
+                    href={current.buttonLink}
+                    className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+                    style={{ background: "#E0A11A" }}
+                  >
+                    {current.buttonText}
+                  </Link>
+                ) : (
+                  <button
+                    className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+                    style={{ background: "#E0A11A" }}
+                  >
+                    {current.buttonText}
+                  </button>
+                )}
               </div>
             )}
           </div>

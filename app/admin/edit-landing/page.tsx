@@ -18,6 +18,8 @@ import {
   uploadLandingVideo,
   publishLanding,
 } from "../../lib/landing-db";
+import { getPublishedBlogs } from "../../lib/blogs-db";
+import type { Blog } from "../../lib/blog-types";
 import { LandingSection } from "../../lib/landing-types";
 import { sectionSchemas } from "../../landing/sectionSchemas";
 import { SectionRenderer } from "../../landing/sectionRegistry";
@@ -89,6 +91,7 @@ export default function LandingEditor() {
   const [addAfterIndex, setAddAfterIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [allProductos, setAllProductos] = useState<any[]>([]);
+  const [publishedBlogs, setPublishedBlogs] = useState<Blog[]>([]);
   const [activeTabs, setActiveTabs] = useState<
     Record<string, "content" | "styles" | "advanced" | "positioning">
   >({});
@@ -102,7 +105,7 @@ export default function LandingEditor() {
   // Para drag & drop de items dentro de secciones
   const [draggedItemState, setDraggedItemState] = useState<{
     sectionId: string;
-    itemType: "gallery" | "featured-category" | "hero" | "vip";
+    itemType: "gallery" | "featured-category" | "hero" | "vip" | "collaborator" | "challenge" | "methodology" | "testimonial";
     fromIndex: number;
   } | null>(null);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">(
@@ -342,6 +345,19 @@ export default function LandingEditor() {
     }
 
     fetchData();
+  }, []);
+
+  // Cargar blogs publicados para la sección de blogs
+  useEffect(() => {
+    async function loadBlogs() {
+      try {
+        const blogs = await getPublishedBlogs();
+        setPublishedBlogs(blogs);
+      } catch (error) {
+        console.error("Error loading blogs:", error);
+      }
+    }
+    loadBlogs();
   }, []);
 
   /* ============================
@@ -1035,6 +1051,443 @@ export default function LandingEditor() {
     if (fromIndex === toIndex) return;
 
     await updateVIPItems(sectionIndex, (items) => {
+      const copy = [...items];
+      const [item] = copy.splice(fromIndex, 1);
+      copy.splice(toIndex, 0, item);
+      return copy;
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // About Us Collaborators
+  // ─────────────────────────────────────────────────────────────────────────────
+  const updateCollaborators = async (
+    sectionIndex: number,
+    updater: (items: {
+      id?: string;
+      name?: string;
+      role?: string;
+      photo?: string;
+    }[]) => {
+      id?: string;
+      name?: string;
+      role?: string;
+      photo?: string;
+    }[]
+  ) => {
+    const updated = [...sections];
+    const current = updated[sectionIndex];
+    if (!current) return;
+
+    const currentItems = ((current.props?.collaborators as any[]) || []) as {
+      id?: string;
+      name?: string;
+      role?: string;
+      photo?: string;
+    }[];
+
+    const newItems = updater(currentItems);
+
+    updated[sectionIndex] = {
+      ...current,
+      props: {
+        ...(current.props || {}),
+        collaborators: newItems,
+      },
+    };
+
+    setSections(updated);
+    setSaving(true);
+    await saveLandingSections(updated);
+    setSaving(false);
+    return newItems;
+  };
+
+  const handleAddCollaborator = async (sectionIndex: number) => {
+    const newCollaborator = {
+      id: `collab-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: "",
+      role: "",
+      photo: "",
+    };
+
+    await updateCollaborators(sectionIndex, (items) => [...items, newCollaborator]);
+  };
+
+  const handleCollaboratorFieldChange = async (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "name" | "role",
+    value: string
+  ) => {
+    await updateCollaborators(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, [field]: value };
+      return copy;
+    });
+  };
+
+  const handleCollaboratorPhoto = async (
+    e: ChangeEvent<HTMLInputElement>,
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadLandingImage(file, `collab-${sectionIndex}-${itemIndex}`);
+
+    await updateCollaborators(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, photo: url };
+      return copy;
+    });
+  };
+
+  const handleRemoveCollaborator = async (
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    await updateCollaborators(sectionIndex, (items) =>
+      items.filter((_, idx) => idx !== itemIndex)
+    );
+  };
+
+  const reorderCollaborators = async (
+    sectionIndex: number,
+    fromIndex: number,
+    toIndex: number
+  ) => {
+    if (fromIndex === toIndex) return;
+
+    await updateCollaborators(sectionIndex, (items) => {
+      const copy = [...items];
+      const [item] = copy.splice(fromIndex, 1);
+      copy.splice(toIndex, 0, item);
+      return copy;
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Challenges Section Items
+  // ─────────────────────────────────────────────────────────────────────────────
+  const updateChallenges = async (
+    sectionIndex: number,
+    updater: (items: {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[]) => {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[]
+  ) => {
+    const updated = [...sections];
+    const current = updated[sectionIndex];
+    if (!current) return;
+
+    const currentItems = ((current.props?.challenges as any[]) || []) as {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[];
+
+    const newItems = updater(currentItems);
+
+    updated[sectionIndex] = {
+      ...current,
+      props: {
+        ...(current.props || {}),
+        challenges: newItems,
+      },
+    };
+
+    setSections(updated);
+    setSaving(true);
+    await saveLandingSections(updated);
+    setSaving(false);
+    return newItems;
+  };
+
+  const handleAddChallenge = async (sectionIndex: number) => {
+    const newChallenge = {
+      id: `challenge-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      title: "",
+      description: "",
+      icon: "warning",
+    };
+
+    await updateChallenges(sectionIndex, (items) => [...items, newChallenge]);
+  };
+
+  const handleChallengeFieldChange = async (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "title" | "description" | "icon",
+    value: string
+  ) => {
+    await updateChallenges(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, [field]: value };
+      return copy;
+    });
+  };
+
+  const handleRemoveChallenge = async (
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    await updateChallenges(sectionIndex, (items) =>
+      items.filter((_, idx) => idx !== itemIndex)
+    );
+  };
+
+  const reorderChallenges = async (
+    sectionIndex: number,
+    fromIndex: number,
+    toIndex: number
+  ) => {
+    if (fromIndex === toIndex) return;
+
+    await updateChallenges(sectionIndex, (items) => {
+      const copy = [...items];
+      const [item] = copy.splice(fromIndex, 1);
+      copy.splice(toIndex, 0, item);
+      return copy;
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Methodology Section Steps
+  // ─────────────────────────────────────────────────────────────────────────────
+  const updateMethodologySteps = async (
+    sectionIndex: number,
+    updater: (items: {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[]) => {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[]
+  ) => {
+    const updated = [...sections];
+    const current = updated[sectionIndex];
+    if (!current) return;
+
+    const currentItems = ((current.props?.steps as any[]) || []) as {
+      id?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+    }[];
+
+    const newItems = updater(currentItems);
+
+    updated[sectionIndex] = {
+      ...current,
+      props: {
+        ...(current.props || {}),
+        steps: newItems,
+      },
+    };
+
+    setSections(updated);
+    setSaving(true);
+    await saveLandingSections(updated);
+    setSaving(false);
+    return newItems;
+  };
+
+  const handleAddMethodologyStep = async (sectionIndex: number) => {
+    const newStep = {
+      id: `step-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      title: "",
+      description: "",
+      icon: "check_circle",
+    };
+
+    await updateMethodologySteps(sectionIndex, (items) => [...items, newStep]);
+  };
+
+  const handleMethodologyStepFieldChange = async (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "title" | "description" | "image",
+    value: string
+  ) => {
+    await updateMethodologySteps(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, [field]: value };
+      return copy;
+    });
+  };
+
+  const handleMethodologyStepImage = async (
+    e: ChangeEvent<HTMLInputElement>,
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadLandingImage(file, `methodology-${sectionIndex}-${itemIndex}`);
+
+    await handleMethodologyStepFieldChange(sectionIndex, itemIndex, "image", url);
+  };
+
+  const handleRemoveMethodologyStep = async (
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    await updateMethodologySteps(sectionIndex, (items) =>
+      items.filter((_, idx) => idx !== itemIndex)
+    );
+  };
+
+  const reorderMethodologySteps = async (
+    sectionIndex: number,
+    fromIndex: number,
+    toIndex: number
+  ) => {
+    if (fromIndex === toIndex) return;
+
+    await updateMethodologySteps(sectionIndex, (items) => {
+      const copy = [...items];
+      const [item] = copy.splice(fromIndex, 1);
+      copy.splice(toIndex, 0, item);
+      return copy;
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Testimonials Section
+  // ─────────────────────────────────────────────────────────────────────────────
+  const updateTestimonials = async (
+    sectionIndex: number,
+    updater: (items: {
+      id?: string;
+      name?: string;
+      company?: string;
+      position?: string;
+      testimonial?: string;
+      photo?: string;
+      results?: string;
+    }[]) => {
+      id?: string;
+      name?: string;
+      company?: string;
+      position?: string;
+      testimonial?: string;
+      photo?: string;
+      results?: string;
+    }[]
+  ) => {
+    const updated = [...sections];
+    const current = updated[sectionIndex];
+    if (!current) return;
+
+    const currentItems = ((current.props?.testimonials as any[]) || []) as {
+      id?: string;
+      name?: string;
+      company?: string;
+      position?: string;
+      testimonial?: string;
+      photo?: string;
+      results?: string;
+    }[];
+
+    const newItems = updater(currentItems);
+
+    updated[sectionIndex] = {
+      ...current,
+      props: {
+        ...(current.props || {}),
+        testimonials: newItems,
+      },
+    };
+
+    setSections(updated);
+    setSaving(true);
+    await saveLandingSections(updated);
+    setSaving(false);
+    return newItems;
+  };
+
+  const handleAddTestimonial = async (sectionIndex: number) => {
+    const newTestimonial = {
+      id: `testimonial-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: "",
+      company: "",
+      position: "",
+      testimonial: "",
+      photo: "",
+      results: "",
+    };
+
+    await updateTestimonials(sectionIndex, (items) => [...items, newTestimonial]);
+  };
+
+  const handleTestimonialFieldChange = async (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "name" | "company" | "position" | "testimonial" | "results",
+    value: string
+  ) => {
+    await updateTestimonials(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, [field]: value };
+      return copy;
+    });
+  };
+
+  const handleTestimonialPhoto = async (
+    e: ChangeEvent<HTMLInputElement>,
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadLandingImage(file, `testimonial-${sectionIndex}-${itemIndex}`);
+
+    await updateTestimonials(sectionIndex, (items) => {
+      const copy = [...items];
+      const current = copy[itemIndex] || {};
+      copy[itemIndex] = { ...current, photo: url };
+      return copy;
+    });
+  };
+
+  const handleRemoveTestimonial = async (
+    sectionIndex: number,
+    itemIndex: number
+  ) => {
+    await updateTestimonials(sectionIndex, (items) =>
+      items.filter((_, idx) => idx !== itemIndex)
+    );
+  };
+
+  const reorderTestimonials = async (
+    sectionIndex: number,
+    fromIndex: number,
+    toIndex: number
+  ) => {
+    if (fromIndex === toIndex) return;
+
+    await updateTestimonials(sectionIndex, (items) => {
       const copy = [...items];
       const [item] = copy.splice(fromIndex, 1);
       copy.splice(toIndex, 0, item);
@@ -2097,13 +2550,13 @@ export default function LandingEditor() {
                                         if (section.type === "hero") {
                                           dimensionHelp = (
                                             <div className="text-[11px] text-purple-700 bg-purple-50 rounded px-2 py-1 mt-1 border border-purple-100">
-                                              M+�nimo: <b>1200x500px</b>
+                                              Mínimo: <b>1200x500px</b>
                                             </div>
                                           );
                                         } else if (section.type === "banner") {
                                           dimensionHelp = (
                                             <div className="text-[11px] text-blue-700 bg-blue-50 rounded px-2 py-1 mt-1 border border-blue-100">
-                                              M+�nimo: <b>1200x500px</b>
+                                              Mínimo: <b>1200x500px</b>
                                             </div>
                                           );
                                         }
@@ -2122,6 +2575,28 @@ export default function LandingEditor() {
                                                 )
                                               }
                                             />
+                                            {value && (
+                                              <div className="flex items-center gap-2 mt-2">
+                                                <img
+                                                  src={value}
+                                                  alt="Preview"
+                                                  className="w-16 h-16 object-cover rounded border"
+                                                />
+                                                <button
+                                                  type="button"
+                                                  className="text-[10px] px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                                                  onClick={() =>
+                                                    handleSectionPropChange(
+                                                      idx,
+                                                      field.name,
+                                                      ""
+                                                    )
+                                                  }
+                                                >
+                                                  Eliminar foto
+                                                </button>
+                                              </div>
+                                            )}
                                             {dimensionHelp}
                                           </div>
                                         );
@@ -2762,6 +3237,735 @@ export default function LandingEditor() {
                                           </>
                                         );
                                       })()}
+                                    </div>
+                                  )}
+
+                                {/* Editor de colaboradores - Quiénes somos */}
+                                {section.type === "aboutUs" &&
+                                  currentTab === "content" && (
+                                    <div className="mt-3 border border-dashed border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900">
+                                      <h4 className="text-xs font-semibold uppercase text-slate-500 mb-2 flex items-center gap-1">
+                                        <span className="material-icons-round text-[14px] text-purple-500">
+                                          groups
+                                        </span>
+                                        Colaboradores
+                                      </h4>
+                                      {(() => {
+                                        const collaborators = ((section.props?.collaborators as any[]) || []) as {
+                                          id?: string;
+                                          name?: string;
+                                          role?: string;
+                                          photo?: string;
+                                        }[];
+
+                                        if (!collaborators.length) {
+                                          return (
+                                            <div className="space-y-2">
+                                              <p className="text-[11px] text-slate-500">
+                                                No hay colaboradores aún. Agrega colaboradores usando el botón de abajo.
+                                              </p>
+                                              <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-700"
+                                                onClick={() => handleAddCollaborator(idx)}
+                                              >
+                                                <span className="material-icons-round text-[14px]">
+                                                  add
+                                                </span>
+                                                Agregar colaborador
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <>
+                                            <div className="flex flex-col gap-3">
+                                              {collaborators.map((item, itemIndex) => {
+                                                const isDragging = draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "collaborator" && draggedItemState?.fromIndex === itemIndex;
+                                                return (
+                                                  <div
+                                                    key={item.id || itemIndex}
+                                                    draggable
+                                                    onDragStart={() => setDraggedItemState({ sectionId: section.id, itemType: "collaborator", fromIndex: itemIndex })}
+                                                    onDragEnd={() => setDraggedItemState(null)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={async (e) => {
+                                                      e.preventDefault();
+                                                      if (draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "collaborator") {
+                                                        await reorderCollaborators(idx, draggedItemState.fromIndex, itemIndex);
+                                                        setDraggedItemState(null);
+                                                      }
+                                                    }}
+                                                    className={`rounded-lg border p-3 flex flex-col gap-3 transition-all cursor-grab active:cursor-grabbing ${
+                                                      isDragging
+                                                        ? "opacity-50 scale-95 border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:shadow-md"
+                                                    }`}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="text-[11px] font-semibold text-slate-500">
+                                                        Colaborador {itemIndex + 1}
+                                                      </span>
+                                                      <button
+                                                        type="button"
+                                                        className="text-[10px] px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => handleRemoveCollaborator(idx, itemIndex)}
+                                                      >
+                                                        Quitar
+                                                      </button>
+                                                    </div>
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Nombre del colaborador"
+                                                      value={item.name || ""}
+                                                      onChange={(e) =>
+                                                        handleCollaboratorFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "name",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Rol (ej: Consultor Financiero)"
+                                                      value={item.role || ""}
+                                                      onChange={(e) =>
+                                                        handleCollaboratorFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "role",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <div className="space-y-1">
+                                                      {item.photo && (
+                                                        <div className="w-20 h-20 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 mx-auto">
+                                                          <img
+                                                            src={item.photo}
+                                                            alt={item.name || "Colaborador"}
+                                                            className="w-full h-full object-cover"
+                                                          />
+                                                        </div>
+                                                      )}
+                                                      <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="text-[11px] w-full"
+                                                        onChange={(e) =>
+                                                          handleCollaboratorPhoto(
+                                                            e,
+                                                            idx,
+                                                            itemIndex
+                                                          )
+                                                        }
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-700"
+                                              onClick={() => handleAddCollaborator(idx)}
+                                            >
+                                              <span className="material-icons-round text-[14px]">
+                                                add
+                                              </span>
+                                              Agregar otro colaborador
+                                            </button>
+                                          </>
+                                        );
+                                      })()}
+                                    </div>
+                                  )}
+
+                                {/* Editor de desafíos - Desafíos de empresas familiares */}
+                                {section.type === "challenges" &&
+                                  currentTab === "content" && (
+                                    <div className="mt-3 border border-dashed border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900">
+                                      <h4 className="text-xs font-semibold uppercase text-slate-500 mb-2 flex items-center gap-1">
+                                        <span className="material-icons-round text-[14px] text-purple-500">
+                                          warning
+                                        </span>
+                                        Desafíos
+                                      </h4>
+                                      {(() => {
+                                        const challenges = ((section.props?.challenges as any[]) || []) as {
+                                          id?: string;
+                                          title?: string;
+                                          description?: string;
+                                          icon?: string;
+                                        }[];
+
+                                        if (!challenges.length) {
+                                          return (
+                                            <div className="space-y-2">
+                                              <p className="text-[11px] text-slate-500">
+                                                No hay desafíos aún. Agrega desafíos usando el botón de abajo.
+                                              </p>
+                                              <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-700"
+                                                onClick={() => handleAddChallenge(idx)}
+                                              >
+                                                <span className="material-icons-round text-[14px]">
+                                                  add
+                                                </span>
+                                                Agregar desafío
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <>
+                                            <div className="flex flex-col gap-3">
+                                              {challenges.map((item, itemIndex) => {
+                                                const isDragging = draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "challenge" && draggedItemState?.fromIndex === itemIndex;
+                                                return (
+                                                  <div
+                                                    key={item.id || itemIndex}
+                                                    draggable
+                                                    onDragStart={() => setDraggedItemState({ sectionId: section.id, itemType: "challenge", fromIndex: itemIndex })}
+                                                    onDragEnd={() => setDraggedItemState(null)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={async (e) => {
+                                                      e.preventDefault();
+                                                      if (draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "challenge") {
+                                                        await reorderChallenges(idx, draggedItemState.fromIndex, itemIndex);
+                                                        setDraggedItemState(null);
+                                                      }
+                                                    }}
+                                                    className={`rounded-lg border p-3 flex flex-col gap-3 transition-all cursor-grab active:cursor-grabbing ${
+                                                      isDragging
+                                                        ? "opacity-50 scale-95 border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:shadow-md"
+                                                    }`}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="text-[11px] font-semibold text-slate-500">
+                                                        Desafío {itemIndex + 1}
+                                                      </span>
+                                                      <button
+                                                        type="button"
+                                                        className="text-[10px] px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => handleRemoveChallenge(idx, itemIndex)}
+                                                      >
+                                                        Quitar
+                                                      </button>
+                                                    </div>
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Título del desafío"
+                                                      value={item.title || ""}
+                                                      onChange={(e) =>
+                                                        handleChallengeFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "title",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <textarea
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs resize-none"
+                                                      placeholder="Descripción del desafío"
+                                                      rows={2}
+                                                      value={item.description || ""}
+                                                      onChange={(e) =>
+                                                        handleChallengeFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "description",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Icono (Material Icons, ej: warning, groups, schedule)"
+                                                      value={item.icon || ""}
+                                                      onChange={(e) =>
+                                                        handleChallengeFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "icon",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded bg-purple-600 text-white text-xs hover:bg-purple-700"
+                                              onClick={() => handleAddChallenge(idx)}
+                                            >
+                                              <span className="material-icons-round text-[14px]">
+                                                add
+                                              </span>
+                                              Agregar otro desafío
+                                            </button>
+                                          </>
+                                        );
+                                      })()}
+                                    </div>
+                                  )}
+
+                                {/* Editor de metodología - Nuestra metodología */}
+                                {section.type === "methodology" &&
+                                  currentTab === "content" && (
+                                    <div className="mt-3 border border-dashed border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900">
+                                      <h4 className="text-xs font-semibold uppercase text-slate-500 mb-2 flex items-center gap-1">
+                                        <span className="material-icons-round text-[14px] text-blue-500">
+                                          route
+                                        </span>
+                                        Etapas del proceso
+                                      </h4>
+                                      {(() => {
+                                        const steps = ((section.props?.steps as any[]) || []) as {
+                                          id?: string;
+                                          title?: string;
+                                          description?: string;
+                                          icon?: string;
+                                        }[];
+
+                                        if (!steps.length) {
+                                          return (
+                                            <div className="space-y-2">
+                                              <p className="text-[11px] text-slate-500">
+                                                No hay etapas configuradas. Se mostrarán las 4 etapas por defecto.
+                                              </p>
+                                              <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-blue-600 text-white text-xs hover:bg-blue-700"
+                                                onClick={() => handleAddMethodologyStep(idx)}
+                                              >
+                                                <span className="material-icons-round text-[14px]">
+                                                  add
+                                                </span>
+                                                Agregar etapa personalizada
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <>
+                                            <div className="flex flex-col gap-3">
+                                              {steps.map((item, itemIndex) => {
+                                                const isDragging = draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "methodology" && draggedItemState?.fromIndex === itemIndex;
+                                                return (
+                                                  <div
+                                                    key={item.id || itemIndex}
+                                                    draggable
+                                                    onDragStart={() => setDraggedItemState({ sectionId: section.id, itemType: "methodology", fromIndex: itemIndex })}
+                                                    onDragEnd={() => setDraggedItemState(null)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={async (e) => {
+                                                      e.preventDefault();
+                                                      if (draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "methodology") {
+                                                        await reorderMethodologySteps(idx, draggedItemState.fromIndex, itemIndex);
+                                                        setDraggedItemState(null);
+                                                      }
+                                                    }}
+                                                    className={`rounded-lg border p-3 flex flex-col gap-3 transition-all cursor-grab active:cursor-grabbing ${
+                                                      isDragging
+                                                        ? "opacity-50 scale-95 border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:shadow-md"
+                                                    }`}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="text-[11px] font-semibold text-slate-500">
+                                                        Etapa {itemIndex + 1}
+                                                      </span>
+                                                      <button
+                                                        type="button"
+                                                        className="text-[10px] px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => handleRemoveMethodologyStep(idx, itemIndex)}
+                                                      >
+                                                        Quitar
+                                                      </button>
+                                                    </div>
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Título de la etapa (ej: Diagnóstico)"
+                                                      value={item.title || ""}
+                                                      onChange={(e) =>
+                                                        handleMethodologyStepFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "title",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <textarea
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs resize-none"
+                                                      placeholder="Descripción de la etapa"
+                                                      rows={2}
+                                                      value={item.description || ""}
+                                                      onChange={(e) =>
+                                                        handleMethodologyStepFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "description",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <div>
+                                                      <label className="text-[10px] text-slate-500 mb-1 block">
+                                                        Imagen (opcional)
+                                                      </label>
+                                                      {item.image ? (
+                                                        <div className="flex items-center gap-2">
+                                                          <img
+                                                            src={item.image}
+                                                            alt="Preview"
+                                                            className="w-12 h-12 object-cover rounded"
+                                                          />
+                                                          <button
+                                                            type="button"
+                                                            className="text-[10px] px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                                                            onClick={() =>
+                                                              handleMethodologyStepFieldChange(
+                                                                idx,
+                                                                itemIndex,
+                                                                "image",
+                                                                ""
+                                                              )
+                                                            }
+                                                          >
+                                                            Eliminar
+                                                          </button>
+                                                        </div>
+                                                      ) : (
+                                                        <input
+                                                          type="file"
+                                                          accept="image/*"
+                                                          className="text-xs"
+                                                          onChange={(e) =>
+                                                            handleMethodologyStepImage(
+                                                              e,
+                                                              idx,
+                                                              itemIndex
+                                                            )
+                                                          }
+                                                        />
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded bg-blue-600 text-white text-xs hover:bg-blue-700"
+                                              onClick={() => handleAddMethodologyStep(idx)}
+                                            >
+                                              <span className="material-icons-round text-[14px]">
+                                                add
+                                              </span>
+                                              Agregar otra etapa
+                                            </button>
+                                          </>
+                                        );
+                                      })()}
+                                    </div>
+                                  )}
+
+                                {/* Editor de testimonios - Testimonios y experiencias */}
+                                {section.type === "testimonials" &&
+                                  currentTab === "content" && (
+                                    <div className="mt-3 border border-dashed border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900">
+                                      <h4 className="text-xs font-semibold uppercase text-slate-500 mb-2 flex items-center gap-1">
+                                        <span className="material-icons-round text-[14px] text-green-500">
+                                          format_quote
+                                        </span>
+                                        Testimonios
+                                      </h4>
+                                      {(() => {
+                                        const testimonials = ((section.props?.testimonials as any[]) || []) as {
+                                          id?: string;
+                                          name?: string;
+                                          company?: string;
+                                          position?: string;
+                                          testimonial?: string;
+                                          photo?: string;
+                                          results?: string;
+                                        }[];
+
+                                        if (!testimonials.length) {
+                                          return (
+                                            <div className="space-y-2">
+                                              <p className="text-[11px] text-slate-500">
+                                                No hay testimonios configurados.
+                                              </p>
+                                              <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded bg-green-600 text-white text-xs hover:bg-green-700"
+                                                onClick={() => handleAddTestimonial(idx)}
+                                              >
+                                                <span className="material-icons-round text-[14px]">
+                                                  add
+                                                </span>
+                                                Agregar testimonio
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+
+                                        return (
+                                          <>
+                                            <div className="flex flex-col gap-3">
+                                              {testimonials.map((item, itemIndex) => {
+                                                const isDragging = draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "testimonial" && draggedItemState?.fromIndex === itemIndex;
+                                                return (
+                                                  <div
+                                                    key={item.id || itemIndex}
+                                                    draggable
+                                                    onDragStart={() => setDraggedItemState({ sectionId: section.id, itemType: "testimonial", fromIndex: itemIndex })}
+                                                    onDragEnd={() => setDraggedItemState(null)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={async (e) => {
+                                                      e.preventDefault();
+                                                      if (draggedItemState?.sectionId === section.id && draggedItemState?.itemType === "testimonial") {
+                                                        await reorderTestimonials(idx, draggedItemState.fromIndex, itemIndex);
+                                                        setDraggedItemState(null);
+                                                      }
+                                                    }}
+                                                    className={`rounded-lg border p-3 flex flex-col gap-3 transition-all cursor-grab active:cursor-grabbing ${
+                                                      isDragging
+                                                        ? "opacity-50 scale-95 border-green-500 bg-green-50 dark:bg-green-900/20"
+                                                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:shadow-md"
+                                                    }`}
+                                                  >
+                                                    <div className="flex items-center justify-between gap-2">
+                                                      <span className="text-[11px] font-semibold text-slate-500">
+                                                        Testimonio {itemIndex + 1}
+                                                      </span>
+                                                      <button
+                                                        type="button"
+                                                        className="text-[10px] px-2 py-0.5 rounded bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => handleRemoveTestimonial(idx, itemIndex)}
+                                                      >
+                                                        Quitar
+                                                      </button>
+                                                    </div>
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Nombre del cliente"
+                                                      value={item.name || ""}
+                                                      onChange={(e) =>
+                                                        handleTestimonialFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "name",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Empresa"
+                                                      value={item.company || ""}
+                                                      onChange={(e) =>
+                                                        handleTestimonialFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "company",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <input
+                                                      type="text"
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs"
+                                                      placeholder="Cargo o posición"
+                                                      value={item.position || ""}
+                                                      onChange={(e) =>
+                                                        handleTestimonialFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "position",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <textarea
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs resize-none"
+                                                      placeholder="Testimonio"
+                                                      rows={3}
+                                                      value={item.testimonial || ""}
+                                                      onChange={(e) =>
+                                                        handleTestimonialFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "testimonial",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <textarea
+                                                      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded px-2 py-1 text-xs resize-none"
+                                                      placeholder="Resultados (opcional)"
+                                                      rows={2}
+                                                      value={item.results || ""}
+                                                      onChange={(e) =>
+                                                        handleTestimonialFieldChange(
+                                                          idx,
+                                                          itemIndex,
+                                                          "results",
+                                                          e.target.value
+                                                        )
+                                                      }
+                                                    />
+                                                    
+                                                    <div>
+                                                      <label className="text-[10px] text-slate-500 mb-1 block">
+                                                        Foto (opcional)
+                                                      </label>
+                                                      {item.photo ? (
+                                                        <div className="flex items-center gap-2">
+                                                          <img
+                                                            src={item.photo}
+                                                            alt="Preview"
+                                                            className="w-12 h-12 object-cover rounded-full"
+                                                          />
+                                                          <button
+                                                            type="button"
+                                                            className="text-[10px] px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                                                            onClick={() =>
+                                                              updateTestimonials(idx, (items) => {
+                                                                const copy = [...items];
+                                                                const current = copy[itemIndex] || {};
+                                                                copy[itemIndex] = { ...current, photo: "" };
+                                                                return copy;
+                                                              })
+                                                            }
+                                                          >
+                                                            Eliminar
+                                                          </button>
+                                                        </div>
+                                                      ) : (
+                                                        <input
+                                                          type="file"
+                                                          accept="image/*"
+                                                          className="text-xs"
+                                                          onChange={(e) =>
+                                                            handleTestimonialPhoto(
+                                                              e,
+                                                              idx,
+                                                              itemIndex
+                                                            )
+                                                          }
+                                                        />
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                            <button
+                                              type="button"
+                                              className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded bg-green-600 text-white text-xs hover:bg-green-700"
+                                              onClick={() => handleAddTestimonial(idx)}
+                                            >
+                                              <span className="material-icons-round text-[14px]">
+                                                add
+                                              </span>
+                                              Agregar otro testimonio
+                                            </button>
+                                          </>
+                                        );
+                                      })()}
+                                    </div>
+                                  )}
+
+                                {/* Editor de selección de blogs - Blog / Conocimiento empresarial */}
+                                {section.type === "featuredBlogs" &&
+                                  currentTab === "content" && (
+                                    <div className="mt-3 border border-dashed border-slate-200 rounded-md p-3 bg-slate-50 dark:bg-slate-900">
+                                      <h4 className="text-xs font-semibold uppercase text-slate-500 mb-2 flex items-center gap-1">
+                                        <span className="material-icons-round text-[14px] text-orange-500">
+                                          article
+                                        </span>
+                                        Seleccionar blogs
+                                      </h4>
+                                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {publishedBlogs.length === 0 ? (
+                                          <p className="text-[11px] text-slate-500">
+                                            No hay blogs publicados disponibles.
+                                          </p>
+                                        ) : (
+                                          publishedBlogs.map((blog) => {
+                                            const selectedIds = ((section.props?.selectedBlogIds as string) || "").split(",").map(id => id.trim()).filter(Boolean);
+                                            const isSelected = selectedIds.includes(blog.id);
+                                            return (
+                                              <label
+                                                key={blog.id}
+                                                className="flex items-center gap-2 p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                                              >
+                                                <input
+                                                  type="checkbox"
+                                                  checked={isSelected}
+                                                  onChange={(e) => {
+                                                    const newSelectedIds = e.target.checked
+                                                      ? [...selectedIds, blog.id]
+                                                      : selectedIds.filter(id => id !== blog.id);
+                                                    handleSectionPropChange(
+                                                      idx,
+                                                      "selectedBlogIds",
+                                                      newSelectedIds.join(",")
+                                                    );
+                                                  }}
+                                                  className="rounded"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                  <p className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
+                                                    {blog.title}
+                                                  </p>
+                                                  <p className="text-[10px] text-slate-500 truncate">
+                                                    {blog.description}
+                                                  </p>
+                                                </div>
+                                              </label>
+                                            );
+                                          })
+                                        )}
+                                      </div>
+                                      <p className="text-[10px] text-slate-400 mt-2">
+                                        Selecciona hasta {section.props?.maxBlogs || 3} blogs para mostrar
+                                      </p>
                                     </div>
                                   )}
 

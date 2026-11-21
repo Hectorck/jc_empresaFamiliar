@@ -18,6 +18,14 @@ import VideoSection, { VideoSectionProps } from "./sections/VideoSection";
 import QuickProductsSection, { QuickProductsSectionProps } from "./sections/QuickProductsSection";
 import TitleSubtitleSection, { TitleSubtitleSectionProps } from "./sections/TitleSubtitleSection";
 import VIPProductsSection, { VIPProductsSectionProps } from "./sections/VIPProductsSection";
+import AboutUsSection, { AboutUsSectionProps } from "./sections/AboutUsSection";
+import ChallengesSection, { ChallengesSectionProps } from "./sections/ChallengesSection";
+import FeaturedServicesSection, { FeaturedServicesSectionProps } from "./sections/FeaturedServicesSection";
+import FeaturedConferencesSection, { FeaturedConferencesSectionProps } from "./sections/FeaturedConferencesSection";
+import FeaturedSpeakersSection, { FeaturedSpeakersSectionProps } from "./sections/FeaturedSpeakersSection";
+import MethodologySection, { MethodologySectionProps } from "./sections/MethodologySection";
+import TestimonialsSection, { TestimonialsSectionProps } from "./sections/TestimonialsSection";
+import FeaturedBlogsSection, { FeaturedBlogsSectionProps } from "./sections/FeaturedBlogsSection";
 
 // Definición de props para cada sección
 export type SectionComponentProps = {
@@ -44,6 +52,14 @@ export const sectionRegistry: Record<string, ComponentType<any>> = {
   featuredCategories: FeaturedCategoriesSection,
   titleSubtitle: TitleSubtitleSection,
   vipProducts: VIPProductsSection,
+  aboutUs: AboutUsSection,
+  challenges: ChallengesSection,
+  featuredServices: FeaturedServicesSection,
+  featuredConferences: FeaturedConferencesSection,
+  featuredSpeakers: FeaturedSpeakersSection,
+  methodology: MethodologySection,
+  testimonials: TestimonialsSection,
+  featuredBlogs: FeaturedBlogsSection,
 };
 
 // Eliminado fragmento duplicado

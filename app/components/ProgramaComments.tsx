@@ -114,7 +114,7 @@ export default function ProgramaComments({ programaId }: ProgramaCommentsProps) 
           className="space-y-4 max-h-[400px] overflow-y-auto pr-2"
           style={{
             scrollbarWidth: "thin",
-            scrollbarColor: "var(--color-neon-rosa) transparent"
+            scrollbarColor: "var(--color-neon-azul) transparent"
           }}
         >
           {comments.length === 0 ? (

@@ -77,7 +77,13 @@ export default function LoginPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ idToken }),
         });
-        const data = await res.json().catch(() => null);
+        
+        let data = null;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await res.json().catch(() => null);
+        }
+        
         if (!res.ok) {
           throw new Error(data?.error || "No se pudo crear la sesión");
         }
@@ -132,7 +138,7 @@ export default function LoginPage() {
           </svg>
         </div>
         <h1 style={{ color: "var(--text)" }} className="text-3xl font-extrabold tracking-tight mb-2">
-          OsoRadio LOGIN
+          Bienvenido, Juan Carlos Vargas
         </h1>
         <p style={{ color: "var(--textSecondary)" }} className="text-base">
           Acceso exclusivo para administración.

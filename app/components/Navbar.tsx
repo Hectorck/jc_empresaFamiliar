@@ -263,16 +263,16 @@ export const Navbar = () => {
 
   const links = [
     { href: "/", label: "Inicio" },
-    { href: "/programas", label: "Programas" },
-    { href: "/interlocutores", label: "Interlocutores" },
-    { href: "/blogs", label: "El Dato" },
-    { href: "/videos", label: "Dale Play" },
+    { href: "/servicios", label: "Servicios" },
+    { href: "/conferencias", label: "Conferencias" },
+    { href: "/interlocutores", label: "Sobre mí" },
+    { href: "/blogs", label: "Artículos" },
   ];
 
   const infoSliderItems = [
-    "📻 Radio Oso - 98.5 FM Ecuador ���",
-    "🎵 La mejor música en tu sintonía",
-    "🎙️ Programas en vivo",
+    "🏢 Juan Carlos Vargas - Asesoría de Empresas Familiares",
+    "💼 Empresas familiares que perduran",
+    "� Consultoría estratégica y sucesión",
     "📲 Contáctanos al 0968514889",
   ];
 
@@ -280,6 +280,9 @@ export const Navbar = () => {
   const logoDark = "/logo_oso.png"; // Logo para modo oscuro
   const logoLight = "/logo_oso.png"; // Logo para modo claro
   const logoSrc = theme === "light" ? logoLight : logoDark;
+
+  // Brand name for display
+  const brandName = "Juan Carlos Vargas";
 
   const handleSearch = () => {
     if (!searchValue.trim()) return;
@@ -333,16 +336,14 @@ export const Navbar = () => {
           <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 flex items-center pointer-events-none">
             <a
               href={user ? "/admin" : "/"}
-              className="flex items-center gap-2 shrink-0 pointer-events-auto"
+              className="flex flex-col items-center gap-0.5 shrink-0 pointer-events-auto"
             >
-              <Image
-                src={logoSrc}
-                alt="Radio Oso"
-                width={240}
-                height={64}
-                className="h-16 w-auto"
-                priority
-              />
+              <span
+                className="text-xl md:text-2xl font-bold tracking-tight"
+                style={{ color: theme === "light" ? "#0f172a" : "#ffffff" }}
+              >
+                {brandName}
+              </span>
             </a>
           </div>
 
@@ -664,7 +665,7 @@ export const Navbar = () => {
               style={{ borderColor: theme === "light" ? "#e2e8f0" : "rgba(255,255,255,0.1)" }}
             >
                               <span className="font-bold text-base">
-                Radio Oso - 98.5 FM
+                Juan Carlos Vargas
               </span>
               <button
                 onClick={() => setMobileOpen(false)}

@@ -17,7 +17,7 @@ export const revalidate = 1800;
 // Cambiar cuando tengas el dominio
 const SITE_URL ="https://www.osoradio.org";
 
-const SITE_NAME = "OSO RADIO - 98.5 FM";
+const SITE_NAME = "Juan Carlos Vargas - Asesoría de Empresas Familiares";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,22 +44,22 @@ const themeInitScript = `
 
 export const metadata: Metadata = {
   title: {
-    default: "OSO RADIO - 98.5 FM Guayas | La mejor música, 24/7, estés donde estés.",
-    template: "%s | OSO RADIO",
+    default: "Juan Carlos Vargas | Empresas familiares que perduran",
+    template: "%s | Juan Carlos Vargas",
   },
 
   description:
-    "OSO RADIO - Emisora de radio en Guayas transmitiendo en 98.5 FM. Programas en vivo, la mejor música, 24/7, estés donde estés, y contenido de entretenimiento.",
+    "Servicios de asesoría profesional para empresas familiares. Consultoría estratégica, sucesión, gobernabilidad y gestión de negocios que perduran generaciones.",
 
   keywords: [
-    "OSO RADIO",
-    "98.5 FM Guayas",
-    "Radio Guayas",
-    "Emisora de radio",
-    "Programas en vivo",
-    "Música en vivo",
-    "Locutores",
-    "Noticias Guayas",
+    "Juan Carlos Vargas",
+    "Empresas familiares",
+    "Asesoría empresarial",
+    "Consultoría de negocios",
+    "Sucesión familiar",
+    "Gobernabilidad corporativa",
+    "Negocios familiares",
+    "Empresas que perduran",
   ],
 
   creator: SITE_NAME,
@@ -82,17 +82,17 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
 
-    title: "OSO RADIO - 98.5 FM Guayas | La mejor música, 24/7, estés donde estés",
+    title: "Juan Carlos Vargas | Empresas familiares que perduran",
 
     description:
-      "OSO RADIO - Emisora de radio en Guayas transmitiendo en 98.5 FM. Programas en vivo, la mejor música 24/7 y contenido de entretenimiento.",
+      "Servicios de asesoría profesional para empresas familiares. Consultoría estratégica, sucesión, gobernabilidad y gestión de negocios que perduran generaciones.",
 
     images: [
       {
         url: `${SITE_URL}/img-1.jpeg`,
         width: 1200,
         height: 630,
-        alt: "Radio Oso - 98.5 FM",
+        alt: "Juan Carlos Vargas - Asesoría de Empresas Familiares",
       },
     ],
   },
@@ -100,10 +100,10 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
 
-    title: "OSO RADIO - 98.5 FM Guayas | La mejor música, 24/7, estés donde estés",
+    title: "Juan Carlos Vargas | Empresas familiares que perduran",
 
     description:
-      "OSO RADIO - Emisora de radio en Guayas transmitiendo en 98.5 FM. Programas en vivo, la mejor música, 24/7, estés donde estés, y contenido de entretenimiento.",
+      "Servicios de asesoría profesional para empresas familiares. Consultoría estratégica, sucesión, gobernabilidad y gestión de negocios que perduran generaciones.",
 
     images: [`${SITE_URL}/img-1.jpeg`],
   },
@@ -135,7 +135,7 @@ export const metadata: Metadata = {
     title: SITE_NAME,
   },
 
-  category: "Emisora de radio",
+  category: "Servicios de consultoría empresarial",
 };
 
 export const viewport: Viewport = {

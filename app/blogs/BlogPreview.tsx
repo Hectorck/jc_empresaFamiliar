@@ -9,6 +9,14 @@ export type BlogPreviewProps = {
   device: "desktop" | "mobile";
 };
 
+// Función simple para parsear Markdown básico (solo negritas con **)
+function parseMarkdown(text: string): React.ReactNode {
+  if (!text) return text;
+  
+  // Reemplazar **texto** con <strong>texto</strong>
+  return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
 function renderBlock(block: BlogBlock, index: number) {
   if (block.type === "subtitle") {
     const style: React.CSSProperties = {
@@ -22,9 +30,8 @@ function renderBlock(block: BlogBlock, index: number) {
         key={block.id || index}
         className="font-semibold mt-8 mb-4 text-slate-900 dark:text-white scroll-m-20"
         style={style}
-      >
-        {block.text}
-      </h2>
+        dangerouslySetInnerHTML={{ __html: parseMarkdown(block.text || "") }}
+      />
     );
   }
   
@@ -40,9 +47,8 @@ function renderBlock(block: BlogBlock, index: number) {
         key={block.id || index}
         className="text-base leading-7 mb-6 text-slate-700 dark:text-slate-300"
         style={style}
-      >
-        {block.text}
-      </p>
+        dangerouslySetInnerHTML={{ __html: parseMarkdown(block.text || "") }}
+      />
     );
   }
   

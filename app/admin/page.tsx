@@ -137,26 +137,6 @@ export default function AdminPage() {
 				) : (
 
 					<div className="flex flex-col gap-8">						
-						{/* Stats Cards Grid */}
-						<div className="grid grid-cols-5 gap-4">
-
-							{/* Oyentes en Vivo */}
-							<div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 cursor-pointer hover:border-red-400 dark:hover:border-red-600 transition-colors">
-								<p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Oyentes en vivo</p>
-								<p className="text-2xl font-bold text-red-600 dark:text-red-400">
-									{stats.radioListenersActive}
-								</p>
-							</div>
-
-							{/* Oyentes de Radio */}
-							<div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 cursor-pointer hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
-								<p className="text-xs text-slate-400 dark:text-slate-500 mb-1">Oyentes radio hoy</p>
-								<p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-									{stats.radioListenersToday}
-								</p>
-							</div>
-						</div>
-
 
 						{/* Analytics Widget - First Section */}
 						<AnalyticsWidget />			

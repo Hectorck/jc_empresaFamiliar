@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { uploadLandingImage } from "../../lib/landing-db";
 
 interface ImageUploadInputProps {
   value: string;
@@ -8,6 +9,7 @@ interface ImageUploadInputProps {
   label?: string;
   required?: boolean;
   placeholder?: string;
+  uploadPath?: string;
 }
 
 const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
@@ -16,6 +18,7 @@ const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
   label,
   required = false,
   placeholder = "URL de la imagen",
+  uploadPath = "service",
 }) => {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -38,18 +41,10 @@ const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
     setIsUploading(true);
 
     try {
-      // Convertir imagen a base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        onChange(base64String);
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        alert("Error al procesar la imagen");
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      // Subir a Firebase Storage
+      const url = await uploadLandingImage(file, uploadPath);
+      onChange(url);
+      setIsUploading(false);
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Error al subir la imagen");

@@ -265,7 +265,7 @@ export const Navbar = () => {
     { href: "/", label: "Inicio" },
     { href: "/servicios", label: "Servicios" },
     { href: "/conferencias", label: "Conferencias" },
-    { href: "/interlocutores", label: "Sobre mí" },
+    { href: "/blogs/T67FX5o40exokTWwjPS8", label: "Sobre mí" },
     { href: "/blogs", label: "Artículos" },
   ];
 
